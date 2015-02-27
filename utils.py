@@ -92,7 +92,6 @@ def check_dependencies(BIN, REQUIRED):
                 raise DependencyError("%s required\n" % dep)
         else:
             BIN[dep] = altvalue[0] if altvalue else value[0]
-	    # print("BIN[%s] = %s\n" % (dep, BIN[dep]))
 
 def add_common_arguments(parser, version):
     parser.add_argument("-v", "--verbose",
@@ -122,15 +121,12 @@ def finish_status(msg=''):
     sys.stderr.write('\n')
 
 def get_num_samples(BIN, path):
-    devnull = open(os.devnull, 'w')
     if fnmatch(path.lower(), '*.flac') and BIN['metaflac']:
         p = Popen([BIN['metaflac'], '--show-total-samples', path], stdout=PIPE)
         out, err = p.communicate()
         num_samples = int(out.strip())
     else:
 	try:
-	    #p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
-	    #	      stderr=devnull)
 	    p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
 		      stderr=PIPE)
 	    out, err = p.communicate()
@@ -146,8 +142,6 @@ def get_num_samples(BIN, path):
 				       (BIN['ffprobe'], '-show_streams',
 				        path, err))
         num_samples = int(round(dur*44100))
-
-    devnull.close()
 
     return num_samples
 
