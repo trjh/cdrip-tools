@@ -63,6 +63,7 @@ class Track(object):
     def __init__(self, path):
         self.path = path
         self.num_samples = utils.get_num_samples(BIN, path)
+	print("track: %s, num_samples %d\n" % (path, self.num_samples))
         self.num_sectors = int(self.num_samples/588)
         if self.num_samples % 588 != 0:
             msg = "%s not from CD (%i samples)\n" % \
@@ -148,6 +149,8 @@ def process_arguments():
 
 def scan_files(tracks):
     sox_args = ['sox']+[t.path for t in tracks]+['-t', 'raw', '-']
+    print(', '.join(sox_args))
+    print("\n")
     entries_per_track = max([len(t.ar_entries) for t in tracks])
     ckcdda_args = [BIN['ckcdda'], entries_per_track]
 
@@ -165,6 +168,8 @@ def scan_files(tracks):
     tmp = TemporaryFile()
     PROCS.append(Popen(sox_args, stdout=PIPE))
     PROCS.append(Popen(ckcdda_args, stdin=PROCS[-1].stdout, stdout=tmp))
+    print(', '.join(ckcdda_args))
+    print("\n")
 
     p = PROCS[-1]
     while p.poll() is None:
@@ -366,6 +371,14 @@ def print_summary(tracks, verbose=False):
 def main(options):
     utils.check_dependencies(BIN, REQUIRED)
     tracks = [Track(path) for path in options.paths]
+    '''
+    from pprint import pprint
+    l = dir(tracks)
+    print("tracks::\n")
+    pprint(l)
+    print("\n::\n")
+    import pdb; pdb.set_trace()
+    '''
 
     cddb, id1, id2 = get_disc_ids(tracks, options.additional_sectors,
                                   options.data_track_len, options.verbose)

@@ -92,6 +92,7 @@ def check_dependencies(BIN, REQUIRED):
                 raise DependencyError("%s required\n" % dep)
         else:
             BIN[dep] = altvalue[0] if altvalue else value[0]
+	    # print("BIN[%s] = %s\n" % (dep, BIN[dep]))
 
 def add_common_arguments(parser, version):
     parser.add_argument("-v", "--verbose",
@@ -127,13 +128,23 @@ def get_num_samples(BIN, path):
         out, err = p.communicate()
         num_samples = int(out.strip())
     else:
-        p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
-                  stderr=devnull)
-        out, err = p.communicate()
+	try:
+	    #p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
+	    #	      stderr=devnull)
+	    p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
+		      stderr=PIPE)
+	    out, err = p.communicate()
+	except:
+	    raise SubprocessError("Can't start: %s %s %s\n" %
+				  (BIN['ffprobe'], '-show_streams', path))
         try:
             dur = float(re.search(b'duration=([0-9.]+)', out).group(1))
         except:
             dur = 0
+	    if (p.returncode != 0):
+		raise SubprocessError("Issue running: %s %s %s\n%s\n" %
+				       (BIN['ffprobe'], '-show_streams',
+				        path, err))
         num_samples = int(round(dur*44100))
 
     devnull.close()
