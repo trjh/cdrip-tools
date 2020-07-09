@@ -121,22 +121,27 @@ def finish_status(msg=''):
     sys.stderr.write('\n')
 
 def get_num_samples(BIN, path):
-    devnull = open(os.devnull, 'w')
     if fnmatch(path.lower(), '*.flac') and BIN['metaflac']:
         p = Popen([BIN['metaflac'], '--show-total-samples', path], stdout=PIPE)
         out, err = p.communicate()
         num_samples = int(out.strip())
     else:
-        p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
-                  stderr=devnull)
-        out, err = p.communicate()
+	try:
+	    p = Popen([BIN['ffprobe'], '-show_streams', path], stdout=PIPE,
+		      stderr=PIPE)
+	    out, err = p.communicate()
+	except:
+	    raise SubprocessError("Can't start: %s %s %s\n" %
+				  (BIN['ffprobe'], '-show_streams', path))
         try:
             dur = float(re.search(b'duration=([0-9.]+)', out).group(1))
         except:
             dur = 0
+	    if (p.returncode != 0):
+		raise SubprocessError("Issue running: %s %s %s\n%s\n" %
+				       (BIN['ffprobe'], '-show_streams',
+				        path, err))
         num_samples = int(round(dur*44100))
-
-    devnull.close()
 
     return num_samples
 

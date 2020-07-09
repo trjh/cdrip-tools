@@ -53,16 +53,18 @@ class Track(object):
     """One track and its associated metadata/information"""
     exact_match_msg = 'Accurately ripped'
     possible_match_msg = 'Possibly accurately ripped'
+    not_accurate_msg = 'Definitely NOT accurately ripped'
     not_present_msg = 'Not present in database'
 
     not_accurate_fmt = '***Definitely not accurately ripped (%s)***'
     with_offset_fmt = ' with offset %i'
     _fmt = '%-20s: %08X'
-    total_fmt = 'total %i submissions'
+    total_fmt = 'total %i submission%s'
 
     def __init__(self, path):
         self.path = path
         self.num_samples = utils.get_num_samples(BIN, path)
+	print("track: %s, num_samples %d\n" % (path, self.num_samples))
         self.num_sectors = int(self.num_samples/588)
         if self.num_samples % 588 != 0:
             msg = "%s not from CD (%i samples)\n" % \
